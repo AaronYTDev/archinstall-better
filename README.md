@@ -8,6 +8,9 @@
 Just another guided/automated [Arch Linux](https://wiki.archlinux.org/index.php/Arch_Linux) installer with a twist.
 The installer also doubles as a python library to install Arch Linux and manage services, packages, and other things inside the installed system *(Usually from a live medium or from an existing installation)*.
 
+> [!IMPORTANT]
+> This is a fork of [archinstall](https://github.com/archlinux/archinstall) with two extra features: a legacy 580xx NVIDIA driver option and an optional yay AUR helper install. See [Extra features in this fork](#extra-features-in-this-fork).
+
 * archinstall [discord](https://discord.gg/aDeMffrxNg) server
 * archinstall [#archinstall:matrix.org](https://matrix.to/#/#archinstall:matrix.org) Matrix channel
 * archinstall [#archinstall@irc.libera.chat:6697](https://web.libera.chat/?channel=#archinstall)
@@ -23,7 +26,14 @@ pacman -Sy archinstall
 archinstall
 ```
 
-Alternative ways to install are `git clone` the repository (and is better since you get the latest code regardless of [build date](https://archlinux.org/packages/?sort=&q=archinstall))
+> [!NOTE]
+> The steps above install the packaged version from the repositories, which does not include this fork's changes. To run this version, clone this repository instead *(which is also how you always get the latest code, regardless of [build date](https://archlinux.org/packages/?sort=&q=archinstall))*:
+
+```shell
+git clone https://github.com/AaronYTDev/archinstall-better
+cd archinstall-better
+python -m archinstall $@
+```
 
 ## Upgrade `archinstall` on live Arch ISO image
 
@@ -46,8 +56,8 @@ archinstall
 similar goes for running the [guided](https://github.com/archlinux/archinstall/blob/master/archinstall/scripts/guided.py) installer using `git`
 
 ```shell
-git clone https://github.com/archlinux/archinstall
-cd archinstall
+git clone https://github.com/AaronYTDev/archinstall-better
+cd archinstall-better
 python -m archinstall $@
 ```
 
@@ -59,6 +69,35 @@ archinstall --script <name>
 
 #### Advanced
 Some additional options that most users do not need are hidden behind the `--advanced` flag and all options/args can be consulted through `-h` or `--help`.
+
+## Extra features in this fork
+
+Two optional additions on top of upstream `archinstall`; neither is active unless you select it.
+
+### Legacy 580xx NVIDIA driver
+
+The 580xx branch is NVIDIA's current legacy driver for Maxwell, Pascal and Volta GPUs, which the open kernel module does not support.
+The graphics driver selection (`Profile` -> `Graphics driver`) therefore has one extra entry:
+
+`Nvidia (legacy 580xx driver for older GPUs, Maxwell/Pascal/Volta)`
+
+Selecting it installs `nvidia-580xx-dkms` from the AUR. The package is built inside the system being installed, and the headers for every kernel picked in the `Kernels` menu are installed first, so DKMS compiles the module for the kernels the installed system will actually boot, not the one running the live ISO.
+
+The build downloads the NVIDIA sources, so expect the installation to take a few minutes longer. In a saved or scripted configuration the choice is the same string, used as the value of `profile_config.gfx_driver` *(alongside a selected profile)*.
+
+### yay
+
+The `Applications` menu has a `yay (AUR helper)` toggle that offers to install [yay](https://github.com/Jguer/yay) during the installation, so AUR packages can be installed right after the first boot:
+
+```shell
+yay -S <package>
+```
+
+For unattended installs the same can be set from a configuration file:
+
+```json
+"app_config": { "yay_config": { "enabled": true } }
+```
 
 ## Running from a declarative configuration file or URL
 
@@ -220,6 +259,8 @@ qemu-system-x86_64 -enable-kvm \
 ## AUR
 
 `archinstall` will not offer or bundle AUR helpers or AUR packages due to a current consensus. This is not any individual developers decision. The reasons and discussions for this stance on the topic can be found on our mailing list thread: [(optional) AUR helper in archinstall](https://lists.archlinux.org/archives/list/arch-dev-public@lists.archlinux.org/thread/VYOULH2GOJLFM2BXOFLWH3D754YXFPSL/).
+
+This fork deliberately diverges from that upstream stance: it can install the [yay](https://github.com/Jguer/yay) AUR helper and builds the legacy 580xx NVIDIA driver from the AUR. Both are optional and off unless selected, see [Extra features in this fork](#extra-features-in-this-fork).
 
 ## Keyring out-of-date
 For a description of the problem see https://archinstall.archlinux.page/help/known_issues.html#keyring-is-out-of-date-2213 and discussion in issue https://github.com/archlinux/archinstall/issues/2213.
