@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Self, TypedDict, override
+from typing import TYPE_CHECKING, NotRequired, Self, TypedDict, override
 
 from archinstall.default_profiles.profile import GreeterType, Profile
 from archinstall.lib.hardware import GfxDriver
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class _ProfileConfigurationSerialization(TypedDict):
-	profile: ProfileSerialization
+	profile: NotRequired[ProfileSerialization]
 	gfx_driver: str | None
 	greeter: str | None
 
@@ -44,11 +44,11 @@ class ProfileConfiguration(SubConfig):
 			if selections := self.profile.current_selection_names():
 				out.append(tr('Selected profiles "{}"').format(', '.join(selections)))
 
-			if self.gfx_driver:
-				out.append(tr('"{}" graphics driver').format(self.gfx_driver.value))
+		if self.gfx_driver:
+			out.append(tr('"{}" graphics driver').format(self.gfx_driver.value))
 
-			if self.greeter:
-				out.append(tr('"{}" greeter').format(self.greeter.value))
+		if self.greeter:
+			out.append(tr('"{}" greeter').format(self.greeter.value))
 
 		return out
 
@@ -56,7 +56,7 @@ class ProfileConfiguration(SubConfig):
 	def parse_arg(cls, arg: _ProfileConfigurationSerialization) -> Self:
 		from archinstall.lib.profile.profiles_handler import profile_handler
 
-		profile = profile_handler.parse_profile_config(arg['profile'])
+		profile = profile_handler.parse_profile_config(arg.get('profile'))
 		greeter = arg.get('greeter', None)
 		gfx_driver = arg.get('gfx_driver', None)
 

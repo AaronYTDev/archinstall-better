@@ -42,10 +42,8 @@ class ProfileMenu(AbstractSubMenu[ProfileConfiguration]):
 			MenuItem(
 				text=tr('Graphics driver'),
 				action=self._select_gfx_driver,
-				value=self._profile_config.gfx_driver if self._profile_config.profile and self._profile_config.profile.is_graphic_driver_supported() else None,
+				value=self._profile_config.gfx_driver,
 				preview_action=self._prev_gfx,
-				enabled=self._profile_config.profile.is_graphic_driver_supported() if self._profile_config.profile else False,
-				dependencies=['profile'],
 				key='gfx_driver',
 			),
 			MenuItem(
@@ -67,12 +65,13 @@ class ProfileMenu(AbstractSubMenu[ProfileConfiguration]):
 		profile = await select_profile(preset)
 
 		if profile is not None:
-			if not profile.is_graphic_driver_supported():
-				self._item_group.find_by_key('gfx_driver').enabled = False
-				self._item_group.find_by_key('gfx_driver').value = None
-			else:
-				self._item_group.find_by_key('gfx_driver').enabled = True
-				self._item_group.find_by_key('gfx_driver').value = GfxDriver.AllOpenSource
+			# the graphics driver selection is independent of the profile;
+			# profiles with graphics support just default to the open-source
+			# drivers if nothing has been picked yet
+			gfx_driver_item = self._item_group.find_by_key('gfx_driver')
+
+			if profile.is_graphic_driver_supported() and not gfx_driver_item.value:
+				gfx_driver_item.value = GfxDriver.AllOpenSource
 
 			if not profile.is_greeter_supported():
 				self._item_group.find_by_key('greeter').enabled = False
@@ -81,31 +80,26 @@ class ProfileMenu(AbstractSubMenu[ProfileConfiguration]):
 				self._item_group.find_by_key('greeter').enabled = True
 				self._item_group.find_by_key('greeter').value = profile.default_greeter_type
 		else:
-			self._item_group.find_by_key('gfx_driver').value = None
 			self._item_group.find_by_key('greeter').value = None
 
 		return profile
 
 	async def _select_gfx_driver(self, preset: GfxDriver | None = None) -> GfxDriver | None:
-		driver = preset
+		driver = await select_driver(preset=preset)
 		profile: Profile | None = self._item_group.find_by_key('profile').value
 
-		if profile:
-			if profile.is_graphic_driver_supported():
-				driver = await select_driver(preset=preset)
+		if driver and profile and 'Sway' in profile.current_selection_names():
+			if driver.is_nvidia_proprietary():
+				header = tr('The proprietary Nvidia driver is not supported by Sway.') + '\n'
+				header += tr('It is likely that you will run into issues, are you okay with that?') + '\n'
 
-			if driver and 'Sway' in profile.current_selection_names():
-				if driver.is_nvidia_proprietary():
-					header = tr('The proprietary Nvidia driver is not supported by Sway.') + '\n'
-					header += tr('It is likely that you will run into issues, are you okay with that?') + '\n'
+				result = await Confirmation(
+					header=header,
+					allow_skip=False,
+					preset=False,
+				).show()
 
-					result = await Confirmation(
-						header=header,
-						allow_skip=False,
-						preset=False,
-					).show()
-
-					return driver if result.get_value() else preset
+				return driver if result.get_value() else preset
 
 		return driver
 

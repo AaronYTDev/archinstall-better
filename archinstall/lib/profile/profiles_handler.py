@@ -52,11 +52,14 @@ class ProfileHandler:
 
 		return data
 
-	def parse_profile_config(self, profile_config: ProfileSerialization) -> Profile | None:
+	def parse_profile_config(self, profile_config: ProfileSerialization | None) -> Profile | None:
 		"""
 		Deserialize JSON configuration for profile
 		"""
 		profile: Profile | None = None
+
+		if not profile_config:
+			return None
 
 		# the order of these is important, we want to
 		# load all the default_profiles from url and custom
@@ -249,11 +252,13 @@ class ProfileHandler:
 	def install_profile_config(self, install_session: Installer, profile_config: ProfileConfiguration) -> None:
 		profile = profile_config.profile
 
+		# the graphics driver is not tied to any profile and is installed
+		# whenever one has been selected, even without a profile
+		if profile_config.gfx_driver:
+			self.install_gfx_driver(install_session, profile_config.gfx_driver)
+
 		if not profile:
 			return
-
-		if profile_config.gfx_driver and (profile.is_xorg_type_profile() or profile.is_desktop_profile()):
-			self.install_gfx_driver(install_session, profile_config.gfx_driver)
 
 		profile.install(install_session)
 

@@ -109,6 +109,10 @@ For unattended installs the same can be set from a configuration file:
 "app_config": { "yay_config": { "enabled": true } }
 ```
 
+### Graphics driver selection
+
+Unlike upstream, the graphics driver is not tied to the selected profile: it can be picked under `Profile` -> `Graphics driver` no matter which profile is set (or none at all), and the chosen driver is always installed. A configuration file with just `"profile_config": { "gfx_driver": "..." }` (no `profile` key) works too.
+
 ## Running from a declarative configuration file or URL
 
 `archinstall` can be run with a JSON configuration file. There are 2 different configuration files to consider,

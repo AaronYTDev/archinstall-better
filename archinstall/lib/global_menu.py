@@ -546,12 +546,15 @@ class GlobalMenu(AbstractMenu[None]):
 	def _prev_profile(self, item: MenuItem) -> str | None:
 		profile_config: ProfileConfiguration | None = item.value
 
-		if profile_config and profile_config.profile:
-			output = tr('Profiles') + ': '
-			if profile_names := profile_config.profile.current_selection_names():
-				output += ', '.join(profile_names) + '\n'
-			else:
-				output += profile_config.profile.name + '\n'
+		if profile_config:
+			output = ''
+
+			if profile_config.profile:
+				output += tr('Profiles') + ': '
+				if profile_names := profile_config.profile.current_selection_names():
+					output += ', '.join(profile_names) + '\n'
+				else:
+					output += profile_config.profile.name + '\n'
 
 			if profile_config.gfx_driver:
 				output += tr('Graphics driver') + ': ' + profile_config.gfx_driver.value + '\n'
@@ -559,7 +562,8 @@ class GlobalMenu(AbstractMenu[None]):
 			if profile_config.greeter:
 				output += tr('Greeter') + ': ' + profile_config.greeter.value + '\n'
 
-			return output
+			if output:
+				return output
 
 		return None
 
