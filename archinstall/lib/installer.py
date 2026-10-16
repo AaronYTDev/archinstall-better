@@ -1952,7 +1952,12 @@ class Installer:
 			sudoers_file.chmod(0o440)
 
 			self.arch_chroot(f'git clone --depth 1 https://aur.archlinux.org/{pkgbase}.git', run_as=build_user)
-			self.arch_chroot(f'cd {shlex.quote(pkgbase)} && makepkg -s -i --noconfirm', run_as=build_user)
+
+			# arch-chroot runs in systemd mode (-S), where /tmp is a root-owned
+			# tmpfs that is not world-writable. Build tools that create files in
+			# TMPDIR then fail with a permission error as the unprivileged build
+			# user, so give makepkg a TMPDIR it actually owns.
+			self.arch_chroot(f'cd {shlex.quote(pkgbase)} && TMPDIR="$HOME" makepkg -s -i --noconfirm', run_as=build_user)
 		except (CalledProcessError, SysCallError) as err:
 			error(f'Failed to build {pkgbase} from the AUR: {err}')
 			raise RequirementError(f'Could not build {pkgbase} from the AUR: {err}') from err
