@@ -27,12 +27,22 @@ archinstall
 ```
 
 > [!NOTE]
-> The steps above install the packaged version from the repositories, which does not include this fork's changes. To run this version, clone this repository instead *(which is also how you always get the latest code, regardless of [build date](https://archlinux.org/packages/?sort=&q=archinstall))*:
+> The steps above install the packaged version from the repositories, which does not include this fork's changes. To run this version instead *(and to always get the latest code, regardless of [build date](https://archlinux.org/packages/?sort=&q=archinstall))*, run it from a clone of this repository:
 
 ```shell
 git clone https://github.com/AaronYTDev/archinstall-better
 cd archinstall-better
 python -m archinstall $@
+```
+
+On the live ISO this works as-is, the dependencies are preinstalled and you are root.
+On an installed system the dependencies are missing and root is required:
+
+```shell
+sudo pacman -S archinstall   # only to pull in the dependencies, the packaged installer is not used from the clone
+git clone https://github.com/AaronYTDev/archinstall-better
+cd archinstall-better
+sudo python -m archinstall $@
 ```
 
 ## Upgrade `archinstall` on live Arch ISO image
