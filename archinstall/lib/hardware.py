@@ -38,6 +38,7 @@ class GfxPackage(Enum):
 	LibVpl = 'libvpl'
 	LibvaNvidiaDriver = 'libva-nvidia-driver'
 	Mesa = 'mesa'
+	Nvidia580xxDkms = 'nvidia-580xx-dkms'
 	NvidiaOpen = 'nvidia-open'
 	NvidiaOpenDkms = 'nvidia-open-dkms'
 	VulkanIntel = 'vulkan-intel'
@@ -52,13 +53,14 @@ class GfxDriver(Enum):
 	AllOpenSource = 'All open-source'
 	AmdOpenSource = 'AMD / ATI (open-source)'
 	IntelOpenSource = 'Intel (open-source)'
+	Nvidia580xxLegacy = 'Nvidia (legacy 580xx driver for older GPUs, Maxwell/Pascal/Volta)'
 	NvidiaOpenKernel = 'Nvidia (open kernel module for newer GPUs, Turing+)'
 	NvidiaOpenSource = 'Nvidia (open-source nouveau driver)'
 	VMOpenSource = 'VirtualBox (open-source)'
 
 	def is_nvidia(self) -> bool:
 		match self:
-			case GfxDriver.NvidiaOpenSource | GfxDriver.NvidiaOpenKernel:
+			case GfxDriver.NvidiaOpenSource | GfxDriver.NvidiaOpenKernel | GfxDriver.Nvidia580xxLegacy:
 				return True
 			case _:
 				return False
@@ -66,12 +68,13 @@ class GfxDriver(Enum):
 	def is_nvidia_proprietary(self) -> bool:
 		"""
 		True for Nvidia drivers that ship proprietary userspace components.
-		Currently only NvidiaOpenKernel (nvidia-open-dkms): open kernel module
-		paired with proprietary userspace. NvidiaOpenSource (nouveau) is fully
-		open and works with Sway, so it is excluded.
+		NvidiaOpenKernel (nvidia-open-dkms) is an open kernel module paired with
+		proprietary userspace and Nvidia580xxLegacy (nvidia-580xx-dkms) is fully
+		proprietary. NvidiaOpenSource (nouveau) is fully open and works with
+		Sway, so it is excluded.
 		"""
 		match self:
-			case GfxDriver.NvidiaOpenKernel:
+			case GfxDriver.NvidiaOpenKernel | GfxDriver.Nvidia580xxLegacy:
 				return True
 			case _:
 				return False
@@ -118,6 +121,11 @@ class GfxDriver(Enum):
 					GfxPackage.VplGpuRt,
 					GfxPackage.LibVpl,
 					GfxPackage.VulkanIntel,
+				]
+			case GfxDriver.Nvidia580xxLegacy:
+				packages += [
+					GfxPackage.Nvidia580xxDkms,
+					GfxPackage.Dkms,
 				]
 			case GfxDriver.NvidiaOpenKernel:
 				packages += [

@@ -1913,6 +1913,58 @@ class Installer:
 	def add_additional_packages(self, packages: str | list[str]) -> None:
 		return self.pacman.strap(packages)
 
+	def install_aur_package(self, pkgbase: str) -> None:
+		"""
+		Build a package base from the AUR inside the target system and install
+		the resulting packages. Used for packages that are not offered by the
+		official repositories, such as the legacy 580xx nvidia driver.
+		"""
+		if not re.fullmatch(r'[a-zA-Z0-9@._+-]+', pkgbase):
+			raise RequirementError(f'Invalid AUR package base name: {pkgbase}')
+
+		info(f'Building {pkgbase} from the AUR (this can take a few minutes)')
+
+		# base-devel and git are needed to build any PKGBUILD, and sudo because
+		# makepkg installs its own dependencies as the unprivileged build user
+		self.add_additional_packages(['base-devel', 'git', 'sudo'])
+
+		# The target only gets a resolver set up when a network configuration
+		# was selected; git and makepkg need one to reach the AUR
+		resolv = self.target / 'etc/resolv.conf'
+		if not resolv.is_symlink() and not resolv.exists():
+			try:
+				resolv.write_text(Path('/etc/resolv.conf').read_text())
+			except OSError:
+				pass
+
+		# makepkg refuses to run as root, so build as a throwaway unprivileged
+		# user with passwordless sudo; it gets removed again afterwards
+		build_user = 'aurbuilder'
+		sudoers_file = self.target / 'etc/sudoers.d' / '99-archinstall-aur'
+		user_created = False
+
+		try:
+			run(self._chroot_argv('useradd', '-m', '--', build_user))
+			user_created = True
+
+			sudoers_file.parent.mkdir(parents=True, exist_ok=True)
+			sudoers_file.write_text(f'{build_user} ALL=(ALL) NOPASSWD: ALL\n')
+			sudoers_file.chmod(0o440)
+
+			self.arch_chroot(f'git clone --depth 1 https://aur.archlinux.org/{pkgbase}.git', run_as=build_user)
+			self.arch_chroot(f'cd {shlex.quote(pkgbase)} && makepkg -s -i --noconfirm', run_as=build_user)
+		except (CalledProcessError, SysCallError) as err:
+			error(f'Failed to build {pkgbase} from the AUR: {err}')
+			raise RequirementError(f'Could not build {pkgbase} from the AUR: {err}') from err
+		finally:
+			sudoers_file.unlink(missing_ok=True)
+
+			if user_created:
+				try:
+					run(self._chroot_argv('userdel', '-r', '--', build_user))
+				except CalledProcessError, SysCallError:
+					warn(f'Could not remove the temporary build user {build_user}')
+
 	def enable_sudo(self, user: User, group: bool = False) -> None:
 		info(f'Enabling sudo permissions for {user.username}')
 

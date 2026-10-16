@@ -217,6 +217,17 @@ class ProfileHandler:
 	def install_gfx_driver(self, install_session: Installer, driver: GfxDriver) -> None:
 		debug(f'Installing GFX driver: {driver.value}')
 
+		# The legacy 580xx driver only exists in the AUR and ships as DKMS
+		# sources, so it is built inside the target with makepkg. Headers for
+		# every kernel selected for the installation are pulled in first, so
+		# the module is compiled for the kernels the installed system will
+		# actually boot -- not for whatever kernel is running the live ISO.
+		if driver == GfxDriver.Nvidia580xxLegacy:
+			headers = [f'{kernel}-headers' for kernel in install_session.kernels]
+			install_session.add_additional_packages(headers)
+			install_session.install_aur_package('nvidia-580xx-utils')
+			return
+
 		driver_pkgs = driver.gfx_packages()
 		pkg_names = [p.value for p in driver_pkgs]
 

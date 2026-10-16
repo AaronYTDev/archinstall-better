@@ -63,7 +63,8 @@ class ProfileConfiguration(SubConfig):
 		if gfx_driver == 'Nvidia (proprietary)':
 			raise ValueError(
 				'The Nvidia proprietary driver (nvidia-dkms) has been removed from the Arch repos. '
-				'Please use "Nvidia (open kernel module for newer GPUs, Turing+)" instead.'
+				'Please use "Nvidia (open kernel module for newer GPUs, Turing+)" instead, or '
+				'"Nvidia (legacy 580xx driver for older GPUs, Maxwell/Pascal/Volta)" for older GPUs.'
 			)
 
 		return cls(

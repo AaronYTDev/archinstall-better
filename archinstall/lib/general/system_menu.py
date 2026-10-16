@@ -119,6 +119,7 @@ async def select_driver(
 		header += tr('For the best compatibility with your Intel hardware, you may want to use either the all open-source or Intel options.\n')
 	if SysInfo.has_nvidia_graphics():
 		header += tr('For the best compatibility with your Nvidia hardware, you may want to use the Nvidia proprietary driver.\n')
+		header += tr('If your GPU is an older Maxwell, Pascal or Volta model, use the legacy 580xx driver instead.\n')
 
 	result = await Selection[GfxDriver](
 		group,
