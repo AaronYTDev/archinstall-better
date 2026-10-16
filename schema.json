@@ -229,7 +229,8 @@
                     "properties": {
                         "username": "string",
                         "!password": "string",
-                        "sudo": "boolean"
+                        "sudo": "boolean",
+                        "passwordless_sudo": "boolean"
                     }
                 }
             }

@@ -286,7 +286,8 @@ Below is an example of how to set the root password and below that are descripti
           {
               "username": "<USERNAME>",
               "enc_password": "<PASSWORD_HASH>",
-              "sudo": false
+              "sudo": false,
+              "passwordless_sudo": false
           }
      - List of regular user credentials, see configuration for reference
      - Maybe

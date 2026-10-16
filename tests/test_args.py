@@ -154,6 +154,7 @@ def test_config_file_parsing(
 					username='user_name',
 					password=Password(enc_password='password_hash'),
 					sudo=True,
+					passwordless_sudo=True,
 					groups=['wheel'],
 				),
 			],

@@ -105,6 +105,7 @@ UserSerialization = TypedDict(
 		'username': str,
 		'!password': NotRequired[str],
 		'sudo': bool,
+		'passwordless_sudo': NotRequired[bool],
 		'groups': list[str],
 		'enc_password': str | None,
 	},
@@ -158,19 +159,21 @@ class User(SubConfig):
 	password: Password
 	sudo: bool
 	groups: list[str] = field(default_factory=list)
+	passwordless_sudo: bool = False
 
 	NAME: str = tr('User')
 
 	@override
 	def __str__(self) -> str:
 		# safety overwrite to make sure password is not leaked
-		return f'User({self.username=}, {self.sudo=}, {self.groups=})'
+		return f'User({self.username=}, {self.sudo=}, {self.passwordless_sudo=}, {self.groups=})'
 
 	def table_data(self) -> dict[str, str | bool | list[str]]:
 		return {
 			'username': self.username,
 			'password': self.password.hidden(),
 			'sudo': self.sudo,
+			'passwordless_sudo': self.passwordless_sudo,
 			'groups': self.groups,
 		}
 
@@ -180,6 +183,7 @@ class User(SubConfig):
 			'username': self.username,
 			'enc_password': self.password.enc_password,
 			'sudo': self.sudo,
+			'passwordless_sudo': self.passwordless_sudo,
 			'groups': self.groups,
 		}
 
@@ -193,6 +197,9 @@ class User(SubConfig):
 			case SummaryLevel.DETAILED:
 				if self.sudo:
 					out.append(tr('sudo user'))
+
+					if self.passwordless_sudo:
+						out.append(tr('passwordless sudo'))
 
 				if self.groups:
 					out.append(tr('groups {}').format(', '.join(self.groups)))
@@ -226,6 +233,7 @@ class User(SubConfig):
 				username=username,
 				password=password,
 				sudo=entry.get('sudo', False) is True,
+				passwordless_sudo=entry.get('passwordless_sudo', False) is True,
 				groups=groups,
 			)
 

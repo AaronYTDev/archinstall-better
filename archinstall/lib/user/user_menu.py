@@ -105,7 +105,25 @@ class UserList(ListManager[User]):
 			case _:
 				raise ValueError('Unhandled result type')
 
-		return User(username, password, sudo)
+		passwordless_sudo = False
+
+		# passwordless sudo only makes sense for a superuser
+		if sudo:
+			prompt = f'{header}\n' + tr('Should "{}" be able to use sudo without a password?\n').format(username)
+
+			result = await Confirmation(
+				header=prompt,
+				allow_skip=False,
+				preset=False,
+			).show()
+
+			match result.type_:
+				case ResultType.Selection:
+					passwordless_sudo = result.item() == MenuItem.yes()
+				case _:
+					raise ValueError('Unhandled result type')
+
+		return User(username, password, sudo, passwordless_sudo=passwordless_sudo)
 
 
 async def select_users(prompt: str = '', preset: list[User] | None = None) -> list[User]:

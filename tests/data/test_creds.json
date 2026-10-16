@@ -4,6 +4,7 @@
         {
             "enc_password": "password_hash",
             "sudo": true,
+            "passwordless_sudo": true,
             "username": "user_name",
             "groups": ["wheel"]
         }

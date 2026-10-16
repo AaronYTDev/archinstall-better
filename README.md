@@ -82,7 +82,7 @@ Some additional options that most users do not need are hidden behind the `--adv
 
 ## Extra features in this fork
 
-Two optional additions on top of upstream `archinstall`; neither is active unless you select it.
+Three optional additions on top of upstream `archinstall`; none of them is active unless you select it.
 
 ### Legacy 580xx NVIDIA driver
 
@@ -107,6 +107,19 @@ For unattended installs the same can be set from a configuration file:
 
 ```json
 "app_config": { "yay_config": { "enabled": true } }
+```
+
+### Passwordless sudo
+
+When a user is added with superuser (sudo) permissions, the user setup also asks whether that user should be able to run `sudo` without entering a password.
+Answering yes writes a `NOPASSWD` rule for the user to `/etc/sudoers.d`, so commands run through `sudo` never wait for the password; answering no keeps the usual password prompt.
+
+In a credentials file the choice is the `passwordless_sudo` key of the user, and it only takes effect together with `"sudo": true`:
+
+```json
+"users": [
+    { "username": "me", "enc_password": "...", "sudo": true, "passwordless_sudo": true }
+]
 ```
 
 ### Graphics driver selection

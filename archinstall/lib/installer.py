@@ -1994,8 +1994,11 @@ class Installer:
 
 		rule_file = sudoers_dir / f'{file_num_str}_{safe_username_file_name}'
 
+		# a passwordless superuser does not get prompted for its password
+		nopasswd = 'NOPASSWD: ' if user.passwordless_sudo else ''
+
 		with rule_file.open('a') as sudoers:
-			sudoers.write(f'{"%" if group else ""}{user.username} ALL=(ALL) ALL\n')
+			sudoers.write(f'{"%" if group else ""}{user.username} ALL=(ALL) {nopasswd}ALL\n')
 
 		# Guarantees sudoer conf file recommended perms
 		rule_file.chmod(0o440)
