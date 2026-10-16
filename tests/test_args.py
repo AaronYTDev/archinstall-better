@@ -14,6 +14,7 @@ from archinstall.lib.models.application import (
 	AudioConfiguration,
 	BluetoothConfiguration,
 	PrintServiceConfiguration,
+	YayConfiguration,
 	ZramConfiguration,
 )
 from archinstall.lib.models.authentication import AuthenticationConfiguration, U2FLoginConfiguration, U2FLoginMethod
@@ -144,6 +145,7 @@ def test_config_file_parsing(
 			bluetooth_config=BluetoothConfiguration(enabled=True),
 			audio_config=AudioConfiguration(audio=Audio.PIPEWIRE),
 			print_service_config=PrintServiceConfiguration(enabled=True),
+			yay_config=YayConfiguration(enabled=True),
 		),
 		auth_config=AuthenticationConfiguration(
 			root_enc_password=Password(enc_password='password_hash'),

@@ -6,6 +6,7 @@ from archinstall.applications.firewall import FirewallApp
 from archinstall.applications.fonts import FontsApp
 from archinstall.applications.power_management import PowerManagementApp
 from archinstall.applications.print_service import PrintServiceApp
+from archinstall.applications.yay import YayApp
 from archinstall.lib.models import Audio
 from archinstall.lib.models.application import ApplicationConfiguration
 from archinstall.lib.models.users import User
@@ -49,3 +50,6 @@ class ApplicationHandler:
 				install_session,
 				app_config.fonts_config,
 			)
+
+		if app_config.yay_config and app_config.yay_config.enabled:
+			YayApp().install(install_session)

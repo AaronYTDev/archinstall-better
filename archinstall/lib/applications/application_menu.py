@@ -15,6 +15,7 @@ from archinstall.lib.models.application import (
 	PowerManagement,
 	PowerManagementConfiguration,
 	PrintServiceConfiguration,
+	YayConfiguration,
 )
 from archinstall.lib.translationhandler import tr
 from archinstall.tui.menu_item import MenuItem, MenuItemGroup
@@ -86,6 +87,13 @@ class ApplicationMenu(AbstractSubMenu[ApplicationConfiguration]):
 				preview_action=self._prev_fonts,
 				key='fonts_config',
 			),
+			MenuItem(
+				text=tr('yay (AUR helper)'),
+				action=select_yay,
+				value=self._app_config.yay_config,
+				preview_action=self._prev_yay,
+				key='yay_config',
+			),
 		]
 
 	def _prev_power_management(self, item: MenuItem) -> str | None:
@@ -129,6 +137,15 @@ class ApplicationMenu(AbstractSubMenu[ApplicationConfiguration]):
 			config: FontsConfiguration = item.value
 			packages = ', '.join(f.value for f in config.fonts)
 			return f'{tr("Additional fonts")}: {packages}'
+		return None
+
+	def _prev_yay(self, item: MenuItem) -> str | None:
+		if item.value is not None:
+			yay_config: YayConfiguration = item.value
+
+			output = f'{tr("yay (AUR helper)")}: '
+			output += tr('Enabled') if yay_config.enabled else tr('Disabled')
+			return output
 		return None
 
 
@@ -261,3 +278,24 @@ async def select_fonts(preset: FontsConfiguration | None = None) -> FontsConfigu
 			return None
 		case ResultType.Reset:
 			return None
+
+
+async def select_yay(preset: YayConfiguration | None) -> YayConfiguration | None:
+	header = tr('Would you like to install yay, an AUR helper?') + '\n'
+	header += tr('It can then be used to install packages from the AUR on the installed system.') + '\n'
+
+	preset_val = preset.enabled if preset else False
+
+	result = await Confirmation(
+		header=header,
+		allow_skip=True,
+		preset=preset_val,
+	).show()
+
+	match result.type_:
+		case ResultType.Selection:
+			return YayConfiguration(result.get_value())
+		case ResultType.Skip:
+			return preset
+		case _:
+			raise ValueError('Unhandled result type')

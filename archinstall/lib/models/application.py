@@ -19,6 +19,10 @@ class BluetoothConfigSerialization(TypedDict):
 	enabled: bool
 
 
+class YayConfigSerialization(TypedDict):
+	enabled: bool
+
+
 class Audio(StrEnum):
 	NO_AUDIO = 'No audio server'
 	PIPEWIRE = auto()
@@ -82,6 +86,7 @@ class ApplicationSerialization(TypedDict):
 	print_service_config: NotRequired[PrintServiceConfigSerialization]
 	firewall_config: NotRequired[FirewallConfigSerialization]
 	fonts_config: NotRequired[FontsConfigSerialization]
+	yay_config: NotRequired[YayConfigSerialization]
 
 
 @dataclass
@@ -125,6 +130,27 @@ class BluetoothConfiguration(SubConfig):
 
 	@classmethod
 	def parse_arg(cls, arg: BluetoothConfigSerialization) -> Self:
+		return cls(arg['enabled'])
+
+
+@dataclass
+class YayConfiguration(SubConfig):
+	enabled: bool
+
+	NAME: str = tr('yay (AUR helper)')
+
+	@override
+	def json(self) -> YayConfigSerialization:
+		return {'enabled': self.enabled}
+
+	@override
+	def summary(self, _level: SummaryLevel = SummaryLevel.BASIC) -> list[str]:
+		if self.enabled:
+			return [tr('enabled')]
+		return []
+
+	@classmethod
+	def parse_arg(cls, arg: YayConfigSerialization) -> Self:
 		return cls(arg['enabled'])
 
 
@@ -258,6 +284,7 @@ class ApplicationConfiguration(SubConfig):
 	print_service_config: PrintServiceConfiguration | None = None
 	firewall_config: FirewallConfiguration | None = None
 	fonts_config: FontsConfiguration | None = None
+	yay_config: YayConfiguration | None = None
 
 	NAME: str = tr('Application')
 
@@ -291,6 +318,9 @@ class ApplicationConfiguration(SubConfig):
 		if args and (fonts_config := args.get('fonts_config')) is not None:
 			app_config.fonts_config = FontsConfiguration.parse_arg(fonts_config)
 
+		if args and (yay_config := args.get('yay_config')) is not None:
+			app_config.yay_config = YayConfiguration.parse_arg(yay_config)
+
 		return app_config
 
 	@override
@@ -315,6 +345,9 @@ class ApplicationConfiguration(SubConfig):
 		if self.fonts_config:
 			config['fonts_config'] = self.fonts_config.json()
 
+		if self.yay_config:
+			config['yay_config'] = self.yay_config.json()
+
 		return config
 
 	@override
@@ -326,6 +359,7 @@ class ApplicationConfiguration(SubConfig):
 			self.print_service_config,
 			self.firewall_config,
 			self.fonts_config,
+			self.yay_config,
 		]
 
 		out: list[str] = []
